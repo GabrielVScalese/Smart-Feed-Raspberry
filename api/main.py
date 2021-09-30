@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request
 import socket
 import json
 
-# Detections
+# Deteccoes
 import cv2
 import time
 import pafy
@@ -54,7 +54,7 @@ class Detector:
                 label = f"{class_names[classId[0]].capitalize()} : {score}"
 
                 if class_names[classId[0]] == animal:
-                    if score >= 0.6:
+                    if score >= 0.7:
                         cv2.rectangle(frame, box, color, 2)
                         cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
                         largura = box[2] #length x
