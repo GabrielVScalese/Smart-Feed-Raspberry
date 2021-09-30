@@ -1,15 +1,16 @@
 from flask import Flask, jsonify, request
 import socket
 import json
+from threading import Thread
 
 app = Flask(__name__)
 
 ## Obtencao de IP
 hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
+localIp = socket.gethostbyname(hostname)
 
 # Valores que serao utilizados pelo Raspberry PI
-animal = "Cão" # Tipo do animal
+animal = "dog" # Tipo do animal
 mode = "Horário"
 quantity = 50 # Quantidade de racao
 schedules = [] # Horarios de alimentacao
@@ -57,5 +58,73 @@ def quantityRoot():
     elif request.method == 'GET':
         return jsonify({'quantity': quantity})
 
-# Rodamos no IP do Raspberry PI
-app.run(host=local_ip, port=5000)
+def run ():
+    app.run(host=localIp, port=5000)
+
+def keepAlive():
+    t = Thread(target=run)
+    t.start()
+
+import cv2
+import time
+import pafy
+import _thread
+
+url = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
+url2 = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
+
+class Detector:
+
+    def __init__(self, url):
+        self.url = url
+    
+    def run(self):
+        videoPafy = pafy.new(self.url)
+        best = videoPafy.getbest(preftype='mp4')
+        cap = cv2.VideoCapture(best.url)
+    
+        # Define cores para fazer as marcacoes de objeto
+        COLORS = [(0,255, 255), (255, 255, 0), (0, 255, 0), (255, 0, 0)]
+        tempo0 = 0
+
+        # Recuperacao dos objetos treinados
+        class_names = []
+        with open('api\coco.names', 'r') as f:
+            class_names = [cname.strip() for cname in f.readlines()]
+
+        net = cv2.dnn.readNet('api\yolov4-tiny.weights', 'api\yolov4-tiny.cfg')
+        model = cv2.dnn_DetectionModel(net)
+        model.setInputParams(size=(416, 416), scale=1/255)
+
+        while True:
+            # if (time.perf_counter() - tempo0 >= 1800 or tempo0 == 0):
+            _, frame = cap.read()
+
+            classes, scores, boxes = model.detect(frame, 0.1, 0.2) # Valores para melhorar rede neural
+            for (classId, score, box) in zip(classes, scores, boxes):
+                color = COLORS[int(classId) % len(COLORS)]
+
+                label = f"{class_names[classId[0]].capitalize()} : {score}"
+
+                if class_names[classId[0]] == animal:
+                    if score >= 0.6:
+                        cv2.rectangle(frame, box, color, 2)
+                        cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                        largura = box[2] #length x
+                        comprimento = box[3] #length y
+                        if (largura >= 220 or comprimento >= 220):
+                            tempo0 = time.perf_counter()
+                        else:
+                                print('Muito distante')
+            # else:
+            #     print(str(1800 - (time.perf_counter() - tempo0)) + ' segundos até a utilização')
+
+            cv2.imshow('Detections', frame)
+            if cv2.waitKey(1) == 27:
+                break
+
+detector = Detector(url=url)
+
+_thread.start_new_thread(run, ())
+
+detector.run()
