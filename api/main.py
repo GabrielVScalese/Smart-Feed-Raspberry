@@ -9,11 +9,7 @@ import time
 import pafy
 import _thread
 
-app = Flask(__name__)
-
-## Obtencao de IP
-hostname = socket.gethostname()
-localIp = socket.gethostbyname(hostname)
+## Deteccoes dos animais
 
 # Valores que serao utilizados pelo Raspberry PI
 animal = "dog" # Tipo do animal
@@ -21,59 +17,8 @@ mode = "Horário"
 quantity = 50 # Quantidade de racao
 schedules = [] # Horarios de alimentacao
 
-@app.route("/")
-def hello_world():
-    return jsonify({'message': "API is running!"})
-
-@app.route("/animal", methods=['GET', 'POST'])
-def animalRoot():
-    global animal 
-
-    if request.method == 'POST':
-        data = request.get_json()
-        animal = data['animal']
-
-        return jsonify({'animal': animal})
-    
-    elif request.method == 'GET':
-        return jsonify({'animal': animal})
-
-@app.route("/mode", methods=['GET', 'POST'])
-def modeRoot():
-    global mode
-
-    if request.method == 'POST':
-        data = request.get_json()
-        mode = data['mode']
-
-        return jsonify({'mode': mode})
-    
-    elif request.method == 'GET':
-        return jsonify({'mode': mode})
-
-@app.route("/quantity", methods=['GET', 'POST'])
-def quantityRoot():
-    global quantity
-
-    if request.method == 'POST':
-        data = request.get_json()
-        quantity = data['quantity']
-
-        return jsonify({'quantity': quantity})
-
-    elif request.method == 'GET':
-        return jsonify({'quantity': quantity})
-
-def run ():
-    app.run(host=localIp, port=5000)
-
-def keepAlive():
-    t = Thread(target=run)
-    t.start()
-
-
-url = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
-url2 = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
+dogUrl = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
+catUrl = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
 
 class Detector:
 
@@ -125,8 +70,61 @@ class Detector:
             if cv2.waitKey(1) == 27:
                 break
 
-detector = Detector(url=url)
+## Servidor
 
+app = Flask(__name__)
+
+## Obtencao de IP
+hostname = socket.gethostname()
+localIp = socket.gethostbyname(hostname)
+
+@app.route("/")
+def hello_world():
+    return jsonify({'message': "API is running!"})
+
+@app.route("/animal", methods=['GET', 'POST'])
+def animalRoot():
+    global animal 
+
+    if request.method == 'POST':
+        data = request.get_json()
+        animal = data['animal']
+
+        return jsonify({'animal': animal})
+    
+    elif request.method == 'GET':
+        return jsonify({'animal': animal})
+
+@app.route("/mode", methods=['GET', 'POST'])
+def modeRoot():
+    global mode
+
+    if request.method == 'POST':
+        data = request.get_json()
+        mode = data['mode']
+
+        return jsonify({'mode': mode})
+    
+    elif request.method == 'GET':
+        return jsonify({'mode': mode})
+
+@app.route("/quantity", methods=['GET', 'POST'])
+def quantityRoot():
+    global quantity
+
+    if request.method == 'POST':
+        data = request.get_json()
+        quantity = data['quantity']
+
+        return jsonify({'quantity': quantity})
+
+    elif request.method == 'GET':
+        return jsonify({'quantity': quantity})
+
+def run ():
+    app.run(host=localIp, port=5000)
+
+
+detector = Detector(url=dogUrl)
 _thread.start_new_thread(run, ())
-
 detector.run()
