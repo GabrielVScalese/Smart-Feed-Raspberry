@@ -1,7 +1,13 @@
+# API
 from flask import Flask, jsonify, request
 import socket
 import json
-from threading import Thread
+
+# Detections
+import cv2
+import time
+import pafy
+import _thread
 
 app = Flask(__name__)
 
@@ -65,10 +71,6 @@ def keepAlive():
     t = Thread(target=run)
     t.start()
 
-import cv2
-import time
-import pafy
-import _thread
 
 url = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
 url2 = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
