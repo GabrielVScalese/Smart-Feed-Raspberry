@@ -22,7 +22,8 @@ environment:
 
 dependencies:
   dio: ^4.0.0
-  http: ^0.13.3
+  upnp: ^2.0.1
+  udp: ^3.0.3
   flutter:
     sdk: flutter
 
