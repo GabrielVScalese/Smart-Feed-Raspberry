@@ -29,7 +29,7 @@ class _HomeState extends State<HomePage> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text('Consumindo Raspberry PI'),
+          title: Text('Consumindo Raspberry Pi'),
           centerTitle: true,
         ),
         body: Container(
