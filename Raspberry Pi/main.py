@@ -15,6 +15,7 @@ from time_controller import TimeController
 # Multicast
 from multicast_server import MulticastServer
 
+
 #################################################### Deteccoes dos animais
 
 # Valores que serao utilizados pelo Raspberry PI
@@ -81,6 +82,7 @@ class Detector:
         except Exception as e:
             print(e)
 
+
 #################################################### Servidor
 
 app = Flask(__name__)
@@ -134,6 +136,8 @@ def quantityRoot():
 def run ():
     app.run(host=localIp, port=5000)
 
+
+#################################################### Threads
 
 detector = Detector(url=dogUrl)
 multicastServer = MulticastServer()
