@@ -16,7 +16,7 @@ SOC.settimeout(2)
 # Envia a mensagem para o endereço do multicast por UPNP
 SOC.sendto('M-SEARCH'.encode('utf-8'), ('239.255.255.250', 1900) )
  
-# Ouvi e captura respostas
+# Ouve e captura respostas
 try:
     while True:
         data, addr = SOC.recvfrom(8192)
