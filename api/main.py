@@ -62,7 +62,7 @@ class Detector:
                         if (largura >= 220 or comprimento >= 220):
                             tempo0 = time.perf_counter()
                         else:
-                                print('Muito distante')
+                            print('Muito distante')
             # else:
             #     print(str(1800 - (time.perf_counter() - tempo0)) + ' segundos até a utilização')
 
@@ -127,4 +127,5 @@ def run ():
 
 detector = Detector(url=dogUrl)
 _thread.start_new_thread(run, ())
-detector.run()
+run()
+# detector.run()
