@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:udp/udp.dart';
-
+import 'package:project/udp_socket.dart';
 import 'client.dart';
 
 class HomePage extends StatefulWidget {
@@ -9,37 +8,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomeState extends State<HomePage> {
-  var informationText = "Aqui aparece a resposta"; // Texto que sera exibido
+  // Textos que serao exibidos
+  var informationText = "Aqui aparece a resposta";
   var apiText = "Aqui aparece a resposta";
-
-  // Para realizar broadcast
-  String host = "239.255.255.250";
-  String msg = "M-SEARCH * HTTP/1.1\r\n" +
-      "HOST:239.255.255.250:1900\r\n" +
-      "MAN:\"ssdp:discover\"\r\n" +
-      "MX: 2\r\n" +
-      "ST: ssdp:all\r\n\r\n";
 
   // Dados obtidos apos broadcast
   String ip = "";
   int port;
 
   findInformation() async {
-    var sender = await UDP.bind(Endpoint.any(port: Port(65000)));
+    UDPSocket socket = new UDPSocket(1900);
+    var machine = await socket.findMachine();
 
-    await sender.send(msg.codeUnits, Endpoint.broadcast(port: Port(1900)));
-
-    var ret = '';
-
-    await sender.listen((datagram) {
-      var message = String.fromCharCodes(datagram.data);
-      ret = message;
-    }, timeout: Duration(seconds: 1));
-
-    String ip = ret.split(';')[0];
-    int machinePort = int.parse(ret.split(';')[1]);
-
-    return [ip, machinePort];
+    return machine;
   }
 
   @override
