@@ -133,7 +133,8 @@ def run ():
 detector = Detector(url=dogUrl)
 multicastServer = MulticastServer()
 
+multicastServer.run()
 # _thread.start_new_thread(run, ())
-_thread.start_new_thread(multicastServer.run, ())
-run()
+#_thread.start_new_thread(multicastServer.run, ())
+#run()
 # detector.run()
