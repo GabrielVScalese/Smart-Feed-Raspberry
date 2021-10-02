@@ -21,7 +21,7 @@ from multicast_server import MulticastServer
 animal = "dog" # Tipo do animal
 mode = "Horário" # Modo de despejamento
 quantity = 50 # Quantidade de racao
-schedules = ['18:50', '18:51'] # Horarios de alimentacao
+schedules = ['18:50', '19:01'] # Horarios de alimentacao
 
 dogUrl = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
 catUrl = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
@@ -59,7 +59,7 @@ class Detector:
                     label = f"{class_names[classId[0]].capitalize()} : {score}"
 
                     if class_names[classId[0]] == animal:
-                        if score >= 0.7:
+                        if score >= 0.65:
                             largura = box[2] # length x
                             comprimento = box[3] # length y
                             if (largura >= 220 or comprimento >= 220):
@@ -69,7 +69,7 @@ class Detector:
                                     print('Máquina ativada')
                                     # tempo0 = time.perf_counter()
                                 else:
-                                    print('Fora de horario')
+                                    print('Fora de horário')
                             # else:
                             #     print('Muito distante')
                 # else:
