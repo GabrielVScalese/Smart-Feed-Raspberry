@@ -10,6 +10,7 @@ import _thread
 import cv2
 import time
 import pafy
+from time_controller import TimeController
 
 # Multicast
 from multicast_server import MulticastServer
@@ -20,7 +21,7 @@ from multicast_server import MulticastServer
 animal = "dog" # Tipo do animal
 mode = "Horário" # Modo de despejamento
 quantity = 50 # Quantidade de racao
-schedules = [] # Horarios de alimentacao
+schedules = ['18:50', '18:51'] # Horarios de alimentacao
 
 dogUrl = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
 catUrl = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
@@ -40,7 +41,7 @@ class Detector:
             tempo0 = 0
 
             class_names = []
-            with open('api\coco.names', 'r') as f:
+            with open('./detections/coco.names', 'r') as f:
                 class_names = [cname.strip() for cname in f.readlines()]
 
             net = cv2.dnn.readNet('./detections/yolov4-tiny.weights', './detections/yolov4-tiny.cfg')
@@ -59,22 +60,26 @@ class Detector:
 
                     if class_names[classId[0]] == animal:
                         if score >= 0.7:
-                            cv2.rectangle(frame, box, color, 2)
-                            cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                            largura = box[2] #length x
-                            comprimento = box[3] #length y
+                            largura = box[2] # length x
+                            comprimento = box[3] # length y
                             if (largura >= 220 or comprimento >= 220):
-                                tempo0 = time.perf_counter()
-                            else:
-                                print('Muito distante')
+                                if TimeController.timeIsValid(schedules):
+                                    cv2.rectangle(frame, box, color, 2)
+                                    cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                                    print('Máquina ativada')
+                                    # tempo0 = time.perf_counter()
+                                else:
+                                    print('Fora de horario')
+                            # else:
+                            #     print('Muito distante')
                 # else:
                 #     print(str(1800 - (time.perf_counter() - tempo0)) + ' segundos até a utilização')
 
                 cv2.imshow('Detections', frame)
                 if cv2.waitKey(1) == 27:
                     break
-        except:
-            print('erro')
+        except Exception as e:
+            print(e)
 
 #################################################### Servidor
 
@@ -133,8 +138,6 @@ def run ():
 detector = Detector(url=dogUrl)
 multicastServer = MulticastServer()
 
-multicastServer.run()
-# _thread.start_new_thread(run, ())
-#_thread.start_new_thread(multicastServer.run, ())
-#run()
-# detector.run()
+_thread.start_new_thread(multicastServer.run, ())
+_thread.start_new_thread(run, ())
+detector.run()
