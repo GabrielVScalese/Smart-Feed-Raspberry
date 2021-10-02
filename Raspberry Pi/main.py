@@ -22,7 +22,7 @@ from multicast_server import MulticastServer
 animal = "dog" # Tipo do animal
 mode = "Horário" # Modo de despejamento
 quantity = 50 # Quantidade de racao
-schedules = ['18:50', '19:01'] # Horarios de alimentacao
+schedules = ['18:50', '19:07'] # Horarios de alimentacao
 
 dogUrl = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
 catUrl = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
@@ -64,7 +64,7 @@ class Detector:
                             largura = box[2] # length x
                             comprimento = box[3] # length y
                             if (largura >= 220 or comprimento >= 220):
-                                if TimeController.timeIsValid(schedules):
+                                if TimeController.nowIsValid(schedules):
                                     cv2.rectangle(frame, box, color, 2)
                                     cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
                                     print('Máquina ativada')

@@ -14,7 +14,7 @@ def convertToDate (time):
 class TimeController:
 
     @staticmethod
-    def timeIsValid (times):
+    def nowIsValid (times):
         tz = pytz.timezone('America/Sao_Paulo')
         
         nowDate = datetime.datetime.now(tz)
