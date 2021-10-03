@@ -64,13 +64,17 @@ class Detector:
                             largura = box[2] # length x
                             comprimento = box[3] # length y
                             if (largura >= 220 or comprimento >= 220):
-                                if TimeController.nowIsValid(schedules):
+                                if mode == 'Horário':
+                                    if TimeController.nowIsValid(schedules):
+                                        cv2.rectangle(frame, box, color, 2)
+                                        cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                                        print('Máquina ativada')
+                                        # tempo0 = time.perf_counter()
+                                    else:
+                                        print('Fora de horário')
+                                else:
                                     cv2.rectangle(frame, box, color, 2)
                                     cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                                    print('Máquina ativada')
-                                    # tempo0 = time.perf_counter()
-                                else:
-                                    print('Fora de horário')
                             # else:
                             #     print('Muito distante')
                 # else:
