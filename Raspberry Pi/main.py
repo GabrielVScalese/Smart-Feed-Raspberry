@@ -65,7 +65,6 @@ class Detector:
                             comprimento = box[3] # length y
                             # if (largura >= 220 or comprimento >= 220):
                             if mode == 'Horário':
-                                print('ok')
                                 if TimeController.nowIsValid(schedules):
                                     cv2.rectangle(frame, box, color, 2)
                                     cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
