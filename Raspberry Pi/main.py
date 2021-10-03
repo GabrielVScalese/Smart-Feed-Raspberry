@@ -53,7 +53,7 @@ class Detector:
                 # if (time.perf_counter() - tempo0 >= 1800 or tempo0 == 0):
                 _, frame = cap.read()
 
-                classes, scores, boxes = model.detect(frame, 0.1, 0.2) # Valores para melhorar rede neural
+                classes, scores, boxes = model.detect(frame, 0.1, 0.2)
                 for (classId, score, box) in zip(classes, scores, boxes):
                     color = COLORS[int(classId) % len(COLORS)]
 
