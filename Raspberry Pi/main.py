@@ -36,7 +36,7 @@ class Detector:
         try:
             videoPafy = pafy.new(self.url)
             best = videoPafy.getbest(preftype='mp4')
-            cap = cv2.VideoCapture(best.url)
+            cap = cv2.VideoCapture('./video.mp4')
     
             COLORS = [(0,255, 255), (255, 255, 0), (0, 255, 0), (255, 0, 0)]
             tempo0 = 0
@@ -63,18 +63,19 @@ class Detector:
                         if score >= 0.65:
                             largura = box[2] # length x
                             comprimento = box[3] # length y
-                            if (largura >= 220 or comprimento >= 220):
-                                if mode == 'Horário':
-                                    if TimeController.nowIsValid(schedules):
-                                        cv2.rectangle(frame, box, color, 2)
-                                        cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                                        print('Máquina ativada')
-                                        # tempo0 = time.perf_counter()
-                                    else:
-                                        print('Fora de horário')
-                                else:
+                            # if (largura >= 220 or comprimento >= 220):
+                            if mode == 'Horário':
+                                print('ok')
+                                if TimeController.nowIsValid(schedules):
                                     cv2.rectangle(frame, box, color, 2)
                                     cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                                    print('Máquina ativada')
+                                    # tempo0 = time.perf_counter()
+                                else:
+                                    print('Fora de horário')
+                            else:
+                                cv2.rectangle(frame, box, color, 2)
+                                cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
                             # else:
                             #     print('Muito distante')
                 # else:
