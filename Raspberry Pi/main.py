@@ -96,7 +96,7 @@ localIp = socket.gethostbyname(hostname)
 
 @app.route("/")
 def hello_world():
-    return jsonify({'message': "API is running!"})
+    return {'message': "API is running!"}
 
 @app.route("/animal", methods=['GET', 'POST'])
 def animalRoot():
