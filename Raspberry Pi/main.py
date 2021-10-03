@@ -1,7 +1,7 @@
 #################################################### Bibliotecas
 
 # API
-from flask import Flask, jsonify, request
+from flask import Flask, request
 import socket
 import json
 import _thread
@@ -106,10 +106,10 @@ def animalRoot():
         data = request.get_json()
         animal = data['animal']
 
-        return jsonify({'animal': animal})
+        return {'animal': animal}
     
     elif request.method == 'GET':
-        return jsonify({'animal': animal})
+        return {'animal': animal}
 
 @app.route("/mode", methods=['GET', 'POST'])
 def modeRoot():
@@ -119,10 +119,10 @@ def modeRoot():
         data = request.get_json()
         mode = data['mode']
 
-        return jsonify({'mode': mode})
+        return {'mode': mode}
     
     elif request.method == 'GET':
-        return jsonify({'mode': mode})
+        return {'mode': mode}
 
 @app.route("/quantity", methods=['GET', 'POST'])
 def quantityRoot():
@@ -132,10 +132,10 @@ def quantityRoot():
         data = request.get_json()
         quantity = data['quantity']
 
-        return jsonify({'quantity': quantity})
+        return {'quantity': quantity}
 
     elif request.method == 'GET':
-        return jsonify({'quantity': quantity})
+        return {'quantity': quantity}
 
 def run ():
     app.run(host=localIp, port=5000)
