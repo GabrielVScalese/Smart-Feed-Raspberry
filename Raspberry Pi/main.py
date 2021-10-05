@@ -20,9 +20,12 @@ from multicast_server import MulticastServer
 
 # Valores que serao utilizados pelo Raspberry PI
 animal = "dog" # Tipo do animal
-mode = "Horário" # Modo de despejamento
+mode = "Aproximação" # Modo de despejamento
 quantity = 50 # Quantidade de racao
-schedules = ['18:50', '19:07'] # Horarios de alimentacao
+schedules = ['18:50', '19:00'] # Horarios de alimentacao
+
+consumedQuantity = 0
+initialDate = None
 
 dogUrl = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
 catUrl = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
