@@ -11,6 +11,9 @@ import cv2
 import time
 import pafy
 from time_controller import TimeController
+import datetime
+import pytz
+tz = pytz.timezone('America/Sao_Paulo')
 
 # Multicast
 from multicast_server import MulticastServer
@@ -18,17 +21,19 @@ from multicast_server import MulticastServer
 
 #################################################### Deteccoes dos animais
 
-# Valores que serao utilizados pelo Raspberry PI
-animal = "dog" # Tipo do animal
-mode = "Aproximação" # Modo de despejamento
-quantity = 50 # Quantidade de racao
-schedules = ['18:50', '19:00'] # Horarios de alimentacao
+initialDate = datetime.datetime.now(tz)
 
-consumedQuantity = 0
-initialDate = None
+# Valores que serao utilizados pelo Raspberry PI
+animal = None # Tipo do animal
+mode = None # Modo de despejamento
+quantity = None # Quantidade de racao
+schedules = None # Horarios de alimentacao
 
 dogUrl = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
 catUrl = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
+
+state = False # Indicar se a maquina esta vinculado a um pet
+petId = None # Para fazer requisicoes
 
 class Detector:
 
@@ -36,6 +41,8 @@ class Detector:
         self.url = url
     
     def run(self):
+        global state
+
         try:
             videoPafy = pafy.new(self.url)
             best = videoPafy.getbest(preftype='mp4')
@@ -53,39 +60,42 @@ class Detector:
             model.setInputParams(size=(416, 416), scale=1/255)
 
             while True:
+                if state == True:
                 # if (time.perf_counter() - tempo0 >= 1800 or tempo0 == 0):
-                _, frame = cap.read()
+                    _, frame = cap.read()
 
-                classes, scores, boxes = model.detect(frame, 0.1, 0.2)
-                for (classId, score, box) in zip(classes, scores, boxes):
-                    color = COLORS[int(classId) % len(COLORS)]
+                    classes, scores, boxes = model.detect(frame, 0.1, 0.2)
+                    for (classId, score, box) in zip(classes, scores, boxes):
+                        color = COLORS[int(classId) % len(COLORS)]
 
-                    label = f"{class_names[classId[0]].capitalize()} : {score}"
+                        label = f"{class_names[classId[0]].capitalize()} : {score}"
 
-                    if class_names[classId[0]] == animal:
-                        if score >= 0.65:
-                            largura = box[2] # length x
-                            comprimento = box[3] # length y
-                            # if (largura >= 220 or comprimento >= 220):
-                            if mode == 'Horário':
-                                if TimeController.nowIsValid(schedules):
+                        if class_names[classId[0]] == animal:
+                            if score >= 0.65:
+                                largura = box[2] # length x
+                                comprimento = box[3] # length y
+                                # if (largura >= 220 or comprimento >= 220):
+                                if mode == 'Horário':
+                                    if TimeController.nowIsValid(schedules):
+                                        cv2.rectangle(frame, box, color, 2)
+                                        cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                                        print('Máquina ativada')
+                                        # tempo0 = time.perf_counter()
+                                    else:
+                                        print('Fora de horário')
+                                else:
                                     cv2.rectangle(frame, box, color, 2)
                                     cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                                    print('Máquina ativada')
-                                    # tempo0 = time.perf_counter()
-                                else:
-                                    print('Fora de horário')
-                            else:
-                                cv2.rectangle(frame, box, color, 2)
-                                cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                            # else:
-                            #     print('Muito distante')
-                # else:
-                #     print(str(1800 - (time.perf_counter() - tempo0)) + ' segundos até a utilização')
+                                # else:
+                                #     print('Muito distante')
+                    # else:
+                    #     print(str(1800 - (time.perf_counter() - tempo0)) + ' segundos até a utilização')
 
-                cv2.imshow('Detections', frame)
-                if cv2.waitKey(1) == 27:
-                    break
+                    cv2.imshow('Detections', frame)
+                    if cv2.waitKey(1) == 27:
+                        break
+                else:
+                    print('Dados necessarios nao foram vinculados')
         except Exception as e:
             print(e)
 
@@ -98,47 +108,31 @@ hostname = socket.gethostname()
 localIp = socket.gethostbyname(hostname)
 
 @app.route("/")
-def hello_world():
+def root():
     return {'message': "API is running!"}
 
-@app.route("/animal", methods=['GET', 'POST'])
-def animalRoot():
-    global animal 
-
-    if request.method == 'POST':
-        data = request.get_json()
-        animal = data['animal']
-
-        return {'animal': animal}
-    
-    elif request.method == 'GET':
-        return {'animal': animal}
-
-@app.route("/mode", methods=['GET', 'POST'])
-def modeRoot():
+@app.route('/feeds', methods=['POST', 'GET'])
+def feedRoot():
+    global petId
+    global animal
     global mode
-
-    if request.method == 'POST':
-        data = request.get_json()
-        mode = data['mode']
-
-        return {'mode': mode}
-    
-    elif request.method == 'GET':
-        return {'mode': mode}
-
-@app.route("/quantity", methods=['GET', 'POST'])
-def quantityRoot():
     global quantity
+    global schedules
+    global state
 
     if request.method == 'POST':
         data = request.get_json()
+        petId = data['petId']
+        animal = data['animal']
+        mode = data['mode']
         quantity = data['quantity']
+        schedules = data['schedules']
+        state = True
 
-        return {'quantity': quantity}
+        return {'petId': petId, 'animal': animal, 'mode': mode, 'quantity': quantity, 'schedules': schedules}
 
-    elif request.method == 'GET':
-        return {'quantity': quantity}
+    if request.method == 'GET':
+        return {petId, animal, mode, quantity, schedules}
 
 def run ():
     app.run(host=localIp, port=5000)

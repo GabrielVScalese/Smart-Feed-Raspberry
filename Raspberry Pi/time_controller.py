@@ -14,6 +14,19 @@ def convertToDate (time):
 class TimeController:
 
     @staticmethod
+    def oneDayDiff (date):
+        nowDate = datetime.datetime.now()
+        nowDate = nowDate.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        date = date.replace(hour=0, minute=0, second=0, microsecond=0)
+        ret = nowDate - date
+        
+        if ret.days == 1:
+            return True
+        
+        return False
+
+    @staticmethod
     def nowIsValid (times):
         tz = pytz.timezone('America/Sao_Paulo')
         
