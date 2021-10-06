@@ -40,8 +40,6 @@ class Detector:
         pass
 
     def run(self):
-        global state
-
         try:
             cap = cv2.VideoCapture('./video.mp4')
     
@@ -69,8 +67,8 @@ class Detector:
 
                         if classNames[classId[0]] == animal:
                             if score >= 0.65:
-                                largura = box[2] # length x
-                                comprimento = box[3] # length y
+                                largura = box[2]
+                                comprimento = box[3]
                                 # if (largura >= 220 or comprimento >= 220):
                                 if mode == 'Horário':
                                     if TimeController.nowIsValid(schedules):
