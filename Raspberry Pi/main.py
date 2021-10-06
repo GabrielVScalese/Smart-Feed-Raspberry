@@ -32,7 +32,7 @@ mode = None # Modo de despejamento
 quantity = None # Quantidade de racao
 schedules = None # Horarios de alimentacao
 state = False # Indicar se a maquina esta vinculado a um pet
-initialDate = getNowDate()
+initialDate = None
 
 class Detector:
 
@@ -113,13 +113,18 @@ def feedRoot(pet):
     global quantity
     global schedules
     global state
-
+    global initialDate
+    
     data = request.get_json()
     petId = pet
     animal = data['animal'].lower()
     mode = data['mode']
     quantity = data['quantity']
     schedules = data['schedules']
+
+    if state == False:
+        initialDate = getNowDate()
+    
     state = True
 
     return {'petId': petId, 'animal': animal, 'mode': mode, 'quantity': quantity, 'schedules': schedules}
