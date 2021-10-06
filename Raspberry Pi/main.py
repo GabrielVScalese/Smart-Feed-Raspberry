@@ -10,50 +10,47 @@ import _thread
 import cv2
 import time
 import pafy
-from time_controller import TimeController
 import datetime
 import pytz
-tz = pytz.timezone('America/Sao_Paulo')
+from time_controller import TimeController
 
 # Multicast
 from multicast_server import MulticastServer
 
-
 #################################################### Deteccoes dos animais
 
-initialDate = datetime.datetime.now(tz)
+def getNowDate():
+    tz = pytz.timezone('America/Sao_Paulo')
+    nowDate = datetime.datetime.now()
+
+    return nowDate
 
 # Valores que serao utilizados pelo Raspberry PI
+petId = None # Para fazer requisicoes
 animal = None # Tipo do animal
 mode = None # Modo de despejamento
 quantity = None # Quantidade de racao
 schedules = None # Horarios de alimentacao
-
-dogUrl = 'https://www.youtube.com/watch?v=TZn7oWMHD90' # Video de cao
-catUrl = 'https://www.youtube.com/watch?v=7Nn7NZI_LN4' # Video de gato
-
 state = False # Indicar se a maquina esta vinculado a um pet
-petId = None # Para fazer requisicoes
+initialDate = getNowDate()
 
 class Detector:
 
-    def __init__(self, url):
-        self.url = url
-    
+    def __init__(self):
+        pass
+
     def run(self):
         global state
 
         try:
-            videoPafy = pafy.new(self.url)
-            best = videoPafy.getbest(preftype='mp4')
             cap = cv2.VideoCapture('./video.mp4')
     
             COLORS = [(0,255, 255), (255, 255, 0), (0, 255, 0), (255, 0, 0)]
             tempo0 = 0
 
-            class_names = []
+            classNames = []
             with open('./detections/coco.names', 'r') as f:
-                class_names = [cname.strip() for cname in f.readlines()]
+                classNames = [cname.strip() for cname in f.readlines()]
 
             net = cv2.dnn.readNet('./detections/yolov4-tiny.weights', './detections/yolov4-tiny.cfg')
             model = cv2.dnn_DetectionModel(net)
@@ -68,9 +65,9 @@ class Detector:
                     for (classId, score, box) in zip(classes, scores, boxes):
                         color = COLORS[int(classId) % len(COLORS)]
 
-                        label = f"{class_names[classId[0]].capitalize()} : {score}"
+                        label = f"{classNames[classId[0]].capitalize()} : {score}"
 
-                        if class_names[classId[0]] == animal:
+                        if classNames[classId[0]] == animal:
                             if score >= 0.65:
                                 largura = box[2] # length x
                                 comprimento = box[3] # length y
@@ -99,8 +96,7 @@ class Detector:
         except Exception as e:
             print(e)
 
-
-#################################################### Servidor
+#################################################### API
 
 app = Flask(__name__)
 
@@ -111,8 +107,8 @@ localIp = socket.gethostbyname(hostname)
 def root():
     return {'message': "API is running!"}
 
-@app.route('/feeds', methods=['POST', 'GET'])
-def feedRoot():
+@app.route('/feeds/<int:pet>', methods=['PUT'])
+def feedRoot(pet):
     global petId
     global animal
     global mode
@@ -120,27 +116,22 @@ def feedRoot():
     global schedules
     global state
 
-    if request.method == 'POST':
-        data = request.get_json()
-        petId = data['petId']
-        animal = data['animal']
-        mode = data['mode']
-        quantity = data['quantity']
-        schedules = data['schedules']
-        state = True
+    data = request.get_json()
+    petId = pet
+    animal = data['animal'].lower()
+    mode = data['mode']
+    quantity = data['quantity']
+    schedules = data['schedules']
+    state = True
 
-        return {'petId': petId, 'animal': animal, 'mode': mode, 'quantity': quantity, 'schedules': schedules}
-
-    if request.method == 'GET':
-        return {petId, animal, mode, quantity, schedules}
+    return {'petId': petId, 'animal': animal, 'mode': mode, 'quantity': quantity, 'schedules': schedules}
 
 def run ():
     app.run(host=localIp, port=5000)
 
-
 #################################################### Threads
 
-detector = Detector(url=dogUrl)
+detector = Detector()
 multicastServer = MulticastServer()
 
 _thread.start_new_thread(multicastServer.run, ())
