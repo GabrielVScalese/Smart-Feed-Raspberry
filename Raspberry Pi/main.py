@@ -41,7 +41,8 @@ class Detector:
 
     def run(self):
         try:
-            cap = cv2.VideoCapture('video.mp4')
+            cap = cv2.VideoCapture('Raspberry Pi\\video.mp4')
+            #cap = cv2.VideoCapture(0)
     
             COLORS = [(0,255, 255), (255, 255, 0), (0, 255, 0), (255, 0, 0)]
             tempo0 = 0
