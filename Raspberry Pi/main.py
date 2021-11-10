@@ -18,7 +18,7 @@ from time_controller import TimeController
 from multicast_server import MulticastServer
 
 #Motor
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 
 #################################################### Deteccoes dos animais
 
@@ -38,11 +38,11 @@ state = False # Indicar se a maquina esta vinculado a um pet
 initialDate = None
 
 #Motor
-GPIO.setmode(GPIO.BOARD)
-control_pins = [7,11,13,15]
-for pin in control_pins:
-    GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, 0)
+# GPIO.setmode(GPIO.BOARD)
+# control_pins = [7,11,13,15]
+# for pin in control_pins:
+#     GPIO.setup(pin, GPIO.OUT)
+#     GPIO.output(pin, 0)
 
 halfstep_seq = [
     [1,0,0,0],
@@ -100,12 +100,12 @@ class Detector:
                             '''cv2.rectangle(frame, box, color, 2)
                             cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)'''
                             print('Máquina ativada')
-                            for i in range(512):
-                                for halfstep in range(8):
-                                    for pin in range(4):
-                                        GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
-                                    time.sleep(0.001)
-                            GPIO.cleanup()
+                            # for i in range(512):
+                            #     for halfstep in range(8):
+                            #         for pin in range(4):
+                            #             GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                            #         time.sleep(0.001)
+                            # GPIO.cleanup()
                             break
                             #guardar no banco a consumption dps q passar um dia
                         else:
@@ -137,6 +137,12 @@ print(localIp)
 @app.route("/")
 def root():
     return {'message': "API is running!"}
+
+@app.route("/activate", methods=['POST'])
+def activateMotor ():
+    print('Motor girando')
+
+    return {'message': 'Ok'}
 
 @app.route('/feeds/<int:pet>', methods=['PUT'])
 def feedRoot(pet):
@@ -170,6 +176,7 @@ def run ():
 detector = Detector()
 multicastServer = MulticastServer()
 
-_thread.start_new_thread(multicastServer.run, ())
-_thread.start_new_thread(run, ())
-detector.run()
+# _thread.start_new_thread(multicastServer.run, ())
+run()
+# _thread.start_new_thread(run, ())
+# detector.run()
