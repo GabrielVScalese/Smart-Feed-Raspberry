@@ -138,8 +138,10 @@ class Detector:
                 else:
                     print('Dados necessarios nao foram vinculados')
 
+                pets = pr.PetsRepository.getFeeds(1).json()
+                print(pets)
+                
                 nowDate = datetime.datetime.now()
-                print(nowDate.hour)
                 if (nowDate.hour == 23 and nowDate.minute == 59 and nowDate.second == 59 and jaReportou == False):
                     stringNowDate = nowDate.strftime("%Y-%m-%d %H:%M:%SZ")
                     response = cr.ConsumptionsRepository.createConsumption({'pet_id': petId , 'date': stringNowDate, 'quantity': quantityTotal })
@@ -160,54 +162,51 @@ class Detector:
 
 #################################################### API
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
-hostname = socket.gethostname()
-localIp = socket.gethostbyname(hostname)
-print(localIp)
+# hostname = socket.gethostname()
+# localIp = socket.gethostbyname(hostname)
+# print(localIp)
 
-@app.route("/")
-def root():
-    return {'message': "API is running!"}
+# @app.route("/")
+# def root():
+#     return {'message': "API is running!"}
 
-@app.route("/activate", methods=['POST'])
-def activateMotor ():
-    print('Motor girando')
+# @app.route("/activate", methods=['POST'])
+# def activateMotor ():
+#     print('Motor girando')
 
-    return {'message': 'Ok'}
+#     return {'message': 'Ok'}
 
-@app.route('/feeds/<int:pet>', methods=['PUT'])
-def feedRoot(pet):
-    global petId
-    global animal
-    global mode
-    global quantity
-    global schedules
-    global state
-    global initialDate
-    global quantityTotal
+# @app.route('/feeds/<int:pet>', methods=['PUT'])
+# def feedRoot(pet):
+#     global petId
+#     global animal
+#     global mode
+#     global quantity
+#     global schedules
+#     global state
+#     global initialDate
+#     global quantityTotal
     
-    data = request.get_json()
-    petId = pet
-    animal = data['animal'].lower()
-    mode = data['mode']
-    quantity = data['quantity']
-    schedules = data['schedules']
+#     data = request.get_json()
+#     petId = pet
+#     animal = data['animal'].lower()
+#     mode = data['mode']
+#     quantity = data['quantity']
+#     schedules = data['schedules']
 
-    if state == False:
-        initialDate = getNowDate()
+#     if state == False:
+#         initialDate = getNowDate()
     
-    state = True
+#     state = True
 
-    quantityTotal = quantityTotal + quantity
+#     quantityTotal = quantityTotal + quantity
 
-    pets = pr.ConsumptionsRepository.getFeeds(1).json()
-    print(pets)
+#     return {'petId': petId, 'animal': animal, 'mode': mode, 'quantity': quantity, 'schedules': schedules}
 
-    return {'petId': petId, 'animal': animal, 'mode': mode, 'quantity': quantity, 'schedules': schedules}
-
-def run ():
-    app.run(host=localIp, port=5000)
+# def run ():
+#     app.run(host=localIp, port=5000)
 
 #################################################### Threads
 
@@ -216,5 +215,5 @@ multicastServer = MulticastServer()
 
 _thread.start_new_thread(multicastServer.run, ())
 #run()
-_thread.start_new_thread(run, ())
+#_thread.start_new_thread(run, ())
 detector.run()

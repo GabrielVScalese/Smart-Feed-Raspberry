@@ -3,7 +3,7 @@ import json
 
 from token_provider import TokenProvider
 
-class ConsumptionsRepository:
+class PetsRepository:
 
     @staticmethod
     def getFeeds (userId):
