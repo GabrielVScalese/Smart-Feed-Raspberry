@@ -1,17 +1,11 @@
 #################################################### Bibliotecas
 
 # API
-from flask import Flask, request
-import socket
-import json
 import _thread
 import consumptions_repository as cr
 import pets_repository as pr
 
 # Deteccoes
-#import cv2
-import time
-#import pafy
 import datetime
 import pytz
 from time_controller import TimeController
@@ -38,9 +32,8 @@ quantityTotal = 0 # Quantidade de racao total no dia
 quantity = 0 # Quantidade de racao
 schedules = None # Horarios de alimentacao
 state = False # Indicar se a maquina esta vinculado a um pet
-initialDate = None
-jaRodou = False
-jaReportou = False
+jaRodou = False # Já rodou o motor?
+jaReportou = False # Já reportou o consumo?
 
 #Motor
 # GPIO.setmode(GPIO.BOARD)
@@ -67,38 +60,45 @@ class Detector:
 
     def run(self):
         try:
-            global jaReportou
-            global jaRodou
+            global petId
+            global animal
+            global mode
             global quantityTotal
+            global quantity
+            global schedules
+            global state
+            global jaRodou
+            global jaReportou
 
             while True:
-                if state == True:
-                    if mode == 'Horário':
-                        if TimeController.nowIsValid(schedules) and jaRodou == False:
-                            print('Máquina ativada')
-                            # for i in range(100):
-                            #     for halfstep in range(8):
-                            #         for pin in range(4):
-                            #             GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
-                            #         time.sleep(0.001)
-                            # for i in range(100):
-                            #     for halfstep in reversed(range(8)):
-                            #         for pin in range(4):
-                            #             GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
-                            #         time.sleep(0.001)
-                                    
-                            jaRodou = True
-                        else:
-                            if TimeController.nowIsValid(schedules) == False:
-                                print('Fora de horário')
-                                jaRodou = False
-                            else:
-                                print('Já rodou')
-                else:
-                    print('Dados necessarios nao foram vinculados')
-
                 pets = pr.PetsRepository.getFeeds(1).json()
-                print(pets)
+                petId = pets[0]['pet_id']
+                mode = pets[0]['mode']
+                quantity = pets[0]['quantity']
+                schedules = pets[0]['schedules']
+                
+                schedules[0] = "18:41:00"
+                if mode == 'Horário':
+                    if TimeController.nowIsValid(schedules) and jaRodou == False:
+                        print('Máquina ativada')
+                        # for i in range(100):
+                        #     for halfstep in range(8):
+                        #         for pin in range(4):
+                        #             GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                        #         time.sleep(0.001)
+                        # for i in range(100):
+                        #     for halfstep in reversed(range(8)):
+                        #         for pin in range(4):
+                        #             GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                        #         time.sleep(0.001)
+                                
+                        jaRodou = True
+                    else:
+                        if TimeController.nowIsValid(schedules) == False:
+                            print('Fora de horário')
+                            jaRodou = False
+                        else:
+                            print('Já rodou')
 
                 nowDate = datetime.datetime.now()
                 if (nowDate.hour == 23 and nowDate.minute == 59 and nowDate.second == 59 and jaReportou == False):
