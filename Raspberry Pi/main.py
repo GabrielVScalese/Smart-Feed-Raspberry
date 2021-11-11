@@ -5,6 +5,8 @@ from flask import Flask, request
 import socket
 import json
 import _thread
+import consumptions_repository as cr
+import pets_repository as pr
 
 # Deteccoes
 #import cv2
@@ -18,7 +20,7 @@ from time_controller import TimeController
 from multicast_server import MulticastServer
 
 #Motor
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 
 #################################################### Deteccoes dos animais
 
@@ -32,29 +34,31 @@ def getNowDate():
 petId = None # Para fazer requisicoes
 animal = None # Tipo do animal
 mode = None # Modo de despejamento
-quantity = None # Quantidade de racao
+quantityTotal = 0 # Quantidade de racao total no dia
+quantity = 0 # Quantidade de racao
 schedules = None # Horarios de alimentacao
 state = False # Indicar se a maquina esta vinculado a um pet
 initialDate = None
 jaRodou = False
+jaReportou = False
 
 #Motor
-GPIO.setmode(GPIO.BOARD)
-control_pins = [7,11,13,15]
-for pin in control_pins:
-    GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, 0)
+# GPIO.setmode(GPIO.BOARD)
+# control_pins = [7,11,13,15]
+# for pin in control_pins:
+#     GPIO.setup(pin, GPIO.OUT)
+#     GPIO.output(pin, 0)
 
-halfstep_seq = [
-    [1,0,0,0],
-    [1,1,0,0],
-    [0,1,0,0],
-    [0,1,1,0],
-    [0,0,1,0],
-    [0,0,1,1],
-    [0,0,0,1],
-    [1,0,0,1]
-    ]
+# halfstep_seq = [
+#     [1,0,0,0],
+#     [1,1,0,0],
+#     [0,1,0,0],
+#     [0,1,1,0],
+#     [0,0,1,0],
+#     [0,0,1,1],
+#     [0,0,0,1],
+#     [1,0,0,1]
+#     ]
 
 class Detector:
 
@@ -63,6 +67,9 @@ class Detector:
 
     def run(self):
         try:
+            global jaReportou
+            global jaRodou
+            global quantityTotal
             '''cap = cv2.VideoCapture('Raspberry Pi\\video.mp4')
             #cap = cv2.VideoCapture(0)
     
@@ -99,19 +106,18 @@ class Detector:
                             '''cv2.rectangle(frame, box, color, 2)
                             cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)'''
                             print('Máquina ativada')
-                            for i in range(100):
-                                for halfstep in range(8):
-                                    for pin in range(4):
-                                        GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
-                                    time.sleep(0.001)
-                            for i in range(100):
-                                for halfstep in reversed(range(8)):
-                                    for pin in range(4):
-                                        GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
-                                    time.sleep(0.001)
+                            # for i in range(100):
+                            #     for halfstep in range(8):
+                            #         for pin in range(4):
+                            #             GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                            #         time.sleep(0.001)
+                            # for i in range(100):
+                            #     for halfstep in reversed(range(8)):
+                            #         for pin in range(4):
+                            #             GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                            #         time.sleep(0.001)
                                     
                             jaRodou = True
-                            #guardar no banco a consumption dps q passar um dia
                         else:
                             if TimeController.nowIsValid(schedules) == False:
                                 print('Fora de horário')
@@ -131,12 +137,26 @@ class Detector:
                     break'''
                 else:
                     print('Dados necessarios nao foram vinculados')
+
+                nowDate = datetime.datetime.now()
+                print(nowDate.hour)
+                if (nowDate.hour == 23 and nowDate.minute == 59 and nowDate.second == 59 and jaReportou == False):
+                    stringNowDate = nowDate.strftime("%Y-%m-%d %H:%M:%SZ")
+                    response = cr.ConsumptionsRepository.createConsumption({'pet_id': petId , 'date': stringNowDate, 'quantity': quantityTotal })
+                    quantityTotal = 0
+                    jaReportou = True
+                    print('resposta: ' + str(response))
+                
+                if (jaReportou and nowDate.second != 59):
+                    jaReportou = False
+
         except Exception as e:
             print(e)
         except KeyboardInterrupt as k:
             print("Keyboard Interrupted")
         finally:
-            GPIO.cleanup()
+            # GPIO.cleanup()
+            print('GPIO limpo')
 
 #################################################### API
 
@@ -165,6 +185,7 @@ def feedRoot(pet):
     global schedules
     global state
     global initialDate
+    global quantityTotal
     
     data = request.get_json()
     petId = pet
@@ -178,9 +199,12 @@ def feedRoot(pet):
     
     state = True
 
+    quantityTotal = quantityTotal + quantity
+
     return {'petId': petId, 'animal': animal, 'mode': mode, 'quantity': quantity, 'schedules': schedules}
 
 def run ():
+    print(localIp)
     app.run(host=localIp, port=5000)
 
 #################################################### Threads
@@ -188,6 +212,7 @@ def run ():
 detector = Detector()
 multicastServer = MulticastServer()
 
+print(pr.ConsumptionsRepository.getFeeds())
 _thread.start_new_thread(multicastServer.run, ())
 #run()
 _thread.start_new_thread(run, ())
