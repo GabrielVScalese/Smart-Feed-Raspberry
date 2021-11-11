@@ -201,10 +201,12 @@ def feedRoot(pet):
 
     quantityTotal = quantityTotal + quantity
 
+    pets = pr.ConsumptionsRepository.getFeeds(1).json()
+    print(pets)
+
     return {'petId': petId, 'animal': animal, 'mode': mode, 'quantity': quantity, 'schedules': schedules}
 
 def run ():
-    print(localIp)
     app.run(host=localIp, port=5000)
 
 #################################################### Threads
@@ -212,7 +214,6 @@ def run ():
 detector = Detector()
 multicastServer = MulticastServer()
 
-print(pr.ConsumptionsRepository.getFeeds())
 _thread.start_new_thread(multicastServer.run, ())
 #run()
 _thread.start_new_thread(run, ())

@@ -14,7 +14,6 @@ class MulticastServer:
     def __init__(self):
         self.host = '239.255.255.250'
         self.port = 1900
-        print(ip)
 
     def run (self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
