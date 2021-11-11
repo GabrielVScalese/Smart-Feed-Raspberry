@@ -36,6 +36,7 @@ quantity = None # Quantidade de racao
 schedules = None # Horarios de alimentacao
 state = False # Indicar se a maquina esta vinculado a um pet
 initialDate = None
+jaRodou = False
 
 #Motor
 GPIO.setmode(GPIO.BOARD)
@@ -94,18 +95,29 @@ class Detector:
                     if (largura >= 220 or comprimento >= 220):
                     tempo0 = time.perf_counter()'''
                     if mode == 'Horário':
-                        if TimeController.nowIsValid(schedules):
+                        if TimeController.nowIsValid(schedules) and jaRodou == False:
                             '''cv2.rectangle(frame, box, color, 2)
                             cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)'''
                             print('Máquina ativada')
-                            for i in range(512):
+                            for i in range(100):
                                 for halfstep in range(8):
                                     for pin in range(4):
                                         GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
                                     time.sleep(0.001)
+                            for i in range(100):
+                                for halfstep in reversed(range(8)):
+                                    for pin in range(4):
+                                        GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                                    time.sleep(0.001)
+                                    
+                            jaRodou = True
                             #guardar no banco a consumption dps q passar um dia
                         else:
-                            print('Fora de horário')
+                            if TimeController.nowIsValid(schedules) == False:
+                                print('Fora de horário')
+                                jaRodou = False
+                            else:
+                                print('Já rodou')
                             '''else:
                             cv2.rectangle(frame, box, color, 2)
                             cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
