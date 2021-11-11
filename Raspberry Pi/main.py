@@ -14,7 +14,8 @@ from time_controller import TimeController
 from multicast_server import MulticastServer
 
 #Motor
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
+import time
 
 #################################################### Deteccoes dos animais
 
@@ -36,22 +37,22 @@ jaRodou = False # Já rodou o motor?
 jaReportou = False # Já reportou o consumo?
 
 #Motor
-# GPIO.setmode(GPIO.BOARD)
-# control_pins = [7,11,13,15]
-# for pin in control_pins:
-#     GPIO.setup(pin, GPIO.OUT)
-#     GPIO.output(pin, 0)
+GPIO.setmode(GPIO.BOARD)
+control_pins = [7,11,13,15]
+for pin in control_pins:
+    GPIO.setup(pin, GPIO.OUT)
+    GPIO.output(pin, 0)
 
-# halfstep_seq = [
-#     [1,0,0,0],
-#     [1,1,0,0],
-#     [0,1,0,0],
-#     [0,1,1,0],
-#     [0,0,1,0],
-#     [0,0,1,1],
-#     [0,0,0,1],
-#     [1,0,0,1]
-#     ]
+halfstep_seq = [
+    [1,0,0,0],
+    [1,1,0,0],
+    [0,1,0,0],
+    [0,1,1,0],
+    [0,0,1,0],
+    [0,0,1,1],
+    [0,0,0,1],
+    [1,0,0,1]
+    ]
 
 class Detector:
 
@@ -76,21 +77,21 @@ class Detector:
                 mode = pets[0]['mode']
                 quantity = pets[0]['quantity']
                 schedules = pets[0]['schedules']
-                
+
                 schedules[0] = "18:41:00"
                 if mode == 'Horário':
                     if TimeController.nowIsValid(schedules) and jaRodou == False:
                         print('Máquina ativada')
-                        # for i in range(100):
-                        #     for halfstep in range(8):
-                        #         for pin in range(4):
-                        #             GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
-                        #         time.sleep(0.001)
-                        # for i in range(100):
-                        #     for halfstep in reversed(range(8)):
-                        #         for pin in range(4):
-                        #             GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
-                        #         time.sleep(0.001)
+                        for i in range(100):
+                            for halfstep in range(8):
+                                for pin in range(4):
+                                    GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                                time.sleep(0.001)
+                        for i in range(100):
+                            for halfstep in reversed(range(8)):
+                                for pin in range(4):
+                                    GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                                time.sleep(0.001)
                                 
                         jaRodou = True
                     else:
@@ -116,7 +117,7 @@ class Detector:
         except KeyboardInterrupt as k:
             print("Keyboard Interrupted")
         finally:
-            # GPIO.cleanup()
+            GPIO.cleanup()
             print('GPIO limpo')
 
 
