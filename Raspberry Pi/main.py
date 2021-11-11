@@ -77,8 +77,7 @@ class Detector:
                 mode = pets[0]['mode']
                 quantity = pets[0]['quantity']
                 schedules = pets[0]['schedules']
-
-                schedules[0] = "18:41:00"
+                
                 if mode == 'Horário':
                     if TimeController.nowIsValid(schedules) and jaRodou == False:
                         print('Máquina ativada')
