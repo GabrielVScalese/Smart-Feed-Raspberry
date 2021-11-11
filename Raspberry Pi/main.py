@@ -102,14 +102,14 @@ class Detector:
                             print('Já rodou')
 
                 nowDate = datetime.datetime.now()
-                if (nowDate.hour == 23 and nowDate.minute == 59 and nowDate.second == 59 and jaReportou == False):
+                if (nowDate.hour == 23 and nowDate.minute == 59 and jaReportou == False):
                     stringNowDate = nowDate.strftime("%Y-%m-%d %H:%M:%SZ")
                     response = cr.ConsumptionsRepository.createConsumption({'pet_id': petId , 'date': stringNowDate, 'quantity': quantityTotal })
                     quantityTotal = 0
                     jaReportou = True
-                    print('resposta: ' + str(response))
+                    print('resposta: ' + str(response.json()))
                 
-                if (jaReportou and nowDate.second != 59):
+                if (jaReportou and nowDate.minute != 59):
                     jaReportou = False
 
         except Exception as e:
