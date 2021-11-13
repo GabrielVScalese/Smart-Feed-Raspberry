@@ -35,6 +35,9 @@ schedules = None # Horarios de alimentacao
 state = False # Indicar se a maquina esta vinculado a um pet
 jaRodou = False # Já rodou o motor?
 jaReportou = False # Já reportou o consumo?
+qtdBalanca = 0 # Quantidade de alimento na balança
+pesoPrevioBalanca = 0 # Peso que ja estava na balança, a ser desconsiderado
+pesoPote = 0 # Peso do pote de racao
 
 #Motor
 GPIO.setmode(GPIO.BOARD)
@@ -61,6 +64,7 @@ class Detector:
 
     def run(self):
         try:
+            #variaveis globais
             global petId
             global animal
             global mode
@@ -70,19 +74,30 @@ class Detector:
             global state
             global jaRodou
             global jaReportou
+            global pesoPrevioBalanca
+            global qtdBalanca
+            global pesoPote
+            
+            pesoPote = 0 #recebe leitura do peso do pote (obs: reiniciar maquina ao trocar pote)
 
             while True:
+                #recuperacao de dados
                 pets = pr.PetsRepository.getFeeds(1).json()
                 petId = pets[0]['pet_id']
                 mode = pets[0]['mode']
                 quantity = pets[0]['quantity']
                 schedules = pets[0]['schedules']
                 
-                xRot = int(quantity / 50)
+                xRot = int(quantity / 50) #calcula o numero de rotacoes com base na quantidade de racao
                 
                 if mode == 'Horário':
+                    #se estiver no horario e ainda nao girou nesse horario
                     if TimeController.nowIsValid(schedules) and jaRodou == False:
                         print('Máquina ativada')
+                        
+                        quantityTotal += quantity #adiciona o depositado no horario ao total
+                        
+                        #gira o motor
                         for i in range(xRot):
                             for i in range(100):
                                 for halfstep in range(8):
@@ -103,11 +118,14 @@ class Detector:
                             jaRodou = False
                         else:
                             print('Já rodou')
-
+                
+                #ao fim do dia, registra o consumo
                 nowDate = datetime.datetime.now()
                 if (nowDate.hour == 23 and nowDate.minute == 59 and jaReportou == False):
                     stringNowDate = nowDate.strftime("%Y-%m-%d %H:%M:%SZ")
-                    response = cr.ConsumptionsRepository.createConsumption({'pet_id': petId , 'date': stringNowDate, 'quantity': quantityTotal })
+                    pesoPrevioBalanca = 0 - pesoPote #recebe leitura de sobras - peso do pote
+                    qtdBalanca = quantityTotal - pesoPrevioBalanca #recebe a quantidade - sobras
+                    response = cr.ConsumptionsRepository.createConsumption({'pet_id': petId , 'date': stringNowDate, 'quantity': qtdBalanca })
                     quantityTotal = 0
                     jaReportou = True
                     print('resposta: ' + str(response.json()))
