@@ -78,20 +78,23 @@ class Detector:
                 quantity = pets[0]['quantity']
                 schedules = pets[0]['schedules']
                 
+                xRot = int(quantity / 50)
+                
                 if mode == 'Horário':
                     if TimeController.nowIsValid(schedules) and jaRodou == False:
                         print('Máquina ativada')
-                        for i in range(100):
-                            for halfstep in range(8):
-                                for pin in range(4):
-                                    GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
-                                time.sleep(0.001)
-                        time.sleep(0.3)
-                        for i in range(100):
-                            for halfstep in reversed(range(8)):
-                                for pin in range(4):
-                                    GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
-                                time.sleep(0.001)
+                        for i in range(xRot):
+                            for i in range(100):
+                                for halfstep in range(8):
+                                    for pin in range(4):
+                                        GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                                    time.sleep(0.001)
+                            time.sleep(0.3)
+                            for i in range(100):
+                                for halfstep in reversed(range(8)):
+                                    for pin in range(4):
+                                        GPIO.output(control_pins[pin], halfstep_seq[halfstep][pin])
+                                    time.sleep(0.001)
                                 
                         jaRodou = True
                     else:
