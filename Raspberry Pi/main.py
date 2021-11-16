@@ -13,9 +13,29 @@ from time_controller import TimeController
 # Multicast
 from multicast_server import MulticastServer
 
-#Motor
+#Motor e Balanca
 import RPi.GPIO as GPIO
 import time
+import sys
+
+GPIO.setmode(GPIO.BCM)
+#control_pins = [7,11,13,15]
+control_pins = [4,17,27,22]
+for pin in control_pins:
+    GPIO.setup(pin, GPIO.OUT)
+    GPIO.output(pin, 0)
+
+referenceUnit = 1
+from hx711 import HX711
+
+hx = HX711(5, 6)
+
+hx.set_reading_format("MSB", "MSB")
+hx.set_reference_unit(referenceUnit)
+
+hx.reset()
+
+hx.tare()
 
 #################################################### Deteccoes dos animais
 
@@ -40,11 +60,6 @@ pesoPrevioBalanca = 0 # Peso que ja estava na balança, a ser desconsiderado
 pesoPote = 0 # Peso do pote de racao
 
 #Motor
-GPIO.setmode(GPIO.BOARD)
-control_pins = [7,11,13,15]
-for pin in control_pins:
-    GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, 0)
 
 halfstep_seq = [
     [1,0,0,0],
@@ -77,22 +92,25 @@ class Detector:
             global pesoPrevioBalanca
             global qtdBalanca
             global pesoPote
-            
-            pesoPote = 0 #recebe leitura do peso do pote (obs: reiniciar maquina ao trocar pote)
+
+            pesoPote = hx.get_weight(5) #recebe leitura do peso do pote (obs: reiniciar maquina ao trocar pote)
+            hx.power_down()
+            hx.power_up()
+            time.sleep(0.1)
 
             while True:
                 #recuperacao de dados
                 pets = pr.PetsRepository.getFeeds(1).json()
-                petId = pets[0]['pet_id']
-                mode = pets[0]['mode']
-                quantity = pets[0]['quantity']
-                schedules = pets[0]['schedules']
+                petId = pets[0]['id']
+                mode = pets[0]['feed']['mode']
+                quantity = pets[0]['feed']['quantity']
+                schedules = pets[0]['feed']['schedules']
                 
                 xRot = int(quantity / 50) #calcula o numero de rotacoes com base na quantidade de racao
                 
                 if mode == 'Horário':
                     #se estiver no horario e ainda nao girou nesse horario
-                    if TimeController.nowIsValid(schedules) and jaRodou == False:
+                    if TimeController.nowIsValid(schedules) and jaRodou == False or True:
                         print('Máquina ativada')
                         
                         quantityTotal += quantity #adiciona o depositado no horario ao total
@@ -123,7 +141,10 @@ class Detector:
                 nowDate = datetime.datetime.now()
                 if (nowDate.hour == 23 and nowDate.minute == 59 and jaReportou == False):
                     stringNowDate = nowDate.strftime("%Y-%m-%d %H:%M:%SZ")
-                    pesoPrevioBalanca = 0 - pesoPote #recebe leitura de sobras - peso do pote
+                    pesoPrevioBalanca = hx.get_weight(5) - pesoPote #recebe leitura de sobras - peso do pote
+                    hx.power_down()
+                    hx.power_up()
+                    time.sleep(0.1)
                     qtdBalanca = quantityTotal - pesoPrevioBalanca #recebe a quantidade - sobras
                     response = cr.ConsumptionsRepository.createConsumption({'pet_id': petId , 'date': stringNowDate, 'quantity': qtdBalanca })
                     quantityTotal = 0

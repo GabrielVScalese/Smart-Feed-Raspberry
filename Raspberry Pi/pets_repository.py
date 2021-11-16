@@ -9,6 +9,6 @@ class PetsRepository:
     def getFeeds (userId):
         token = TokenProvider.generateToken()
         headers = {'Authorization': f"Bearer {token}"}
-        response = requests.get('https://smart-feed-api.herokuapp.com/feeds/findByOwner/'+str(userId), headers = headers)
+        response = requests.get('https://smart-feed-api.herokuapp.com/pets/findByOwner/'+str(userId), headers = headers)
 
         return response
